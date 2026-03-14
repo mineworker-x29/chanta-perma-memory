@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://chanta.local/schemas/inbox_manifest.schema.json",
+  "title": "InboxManifest",
+  "description": "Schema for ChantaPermaMemory inbox scan manifest.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "manifest_version",
+    "generated_at",
+    "repository_root",
+    "inbox_path",
+    "item_count",
+    "items"
+  ],
+  "properties": {
+    "manifest_version": {
+      "type": "string",
+      "const": "0.2"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "repository_root": {
+      "type": "string",
+      "minLength": 1
+    },
+    "inbox_path": {
+      "type": "string",
+      "minLength": 1
+    },
+    "item_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/repositoryItem"
+      }
+    }
+  },
+  "$defs": {
+    "repositoryItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "relative_path",
+        "name",
+        "extension",
+        "size",
+        "modified_time",
+        "status",
+        "candidate_domain",
+        "tags",
+        "confidence",
+        "is_file"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "relative_path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "extension": {
+          "type": "string"
+        },
+        "size": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "modified_time": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["inbox"]
+        },
+        "candidate_domain": {
+          "type": ["string", "null"]
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "confidence": {
+          "type": ["string", "null"],
+          "enum": ["low", "medium", "high", null]
+        },
+        "is_file": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}
