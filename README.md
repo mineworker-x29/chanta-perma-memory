@@ -36,3 +36,17 @@ ChantaPermaMemory/
   scripts/
   tests/
 ```
+
+## Python Scaffold (v0.1)
+
+```text
+src/chanta_perma_memory/
+  cli.py
+  config/
+  schemas/
+  policies/
+```
+
+- CLI entrypoint: `chanta-perma-memory`
+- Current ingest behavior is dry-run only
+- No file move or delete execution is implemented in this stage

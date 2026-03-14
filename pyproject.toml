@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "chanta-perma-memory"
+version = "0.1.0"
+description = "Local-first memory and repository management system for Chanta Research Group"
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [{ name = "Chanta Research Group" }]
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[project.scripts]
+chanta-perma-memory = "chanta_perma_memory.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
