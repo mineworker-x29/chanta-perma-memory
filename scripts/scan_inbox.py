@@ -7,32 +7,14 @@ from pathlib import Path
 from typing import Any
 
 
-# ============================================================
-# Version
-# ============================================================
-
-MANIFEST_VERSION = "0.2"
+MANIFEST_VERSION = "0.5"
 
 
-# ============================================================
-# Configuration
-# ============================================================
-
-REPOSITORY_ROOT = Path(r"D:\ChantaResearchGroup")
-INBOX_PATH = REPOSITORY_ROOT / "00_Inbox"
-
-# Output stays inside the Perma repo, not inside the real source repository.
-OUTPUT_DIR = Path(__file__).resolve().parent / "output"
-OUTPUT_PATH = OUTPUT_DIR / "inbox_manifest.json"
-
-# Optional schema path for reference / future validation.
-SCHEMA_PATH = (
-    Path(__file__).resolve().parent.parent
-    / "schemas"
-    / "inbox_manifest.schema.json"
-)
-
-RECURSIVE_SCAN = True
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+CONFIG_PATH = PROJECT_ROOT / "config" / "config.json"
+SCHEMA_PATH = PROJECT_ROOT / "schemas" / "inbox_manifest.schema.json"
+DOMAIN_RULES_PATH = PROJECT_ROOT / "policies" / "domain_rules.json"
+TAG_RULES_PATH = PROJECT_ROOT / "policies" / "tag_rules.json"
 
 SKIP_NAMES = {
     ".DS_Store",
@@ -51,9 +33,36 @@ BLOCKED_EXTENSIONS: set[str] = {
 }
 
 
-# ============================================================
-# Data Model
-# ============================================================
+@dataclass
+class AppConfig:
+    repository_root: Path
+    inbox_path: Path
+    shared_path: Path
+    archive_path: Path
+    dry_run: bool
+    recursive_scan: bool
+    output_path: Path
+
+
+@dataclass
+class DomainRule:
+    domain: str
+    confidence: str
+    keywords: list[str]
+
+
+@dataclass
+class KeywordTagRule:
+    keywords: list[str]
+    tags: list[str]
+
+
+@dataclass
+class TagRules:
+    extension_tags: dict[str, list[str]]
+    keyword_tags: list[KeywordTagRule]
+    domain_tags: dict[str, list[str]]
+
 
 @dataclass
 class RepositoryItem:
@@ -70,12 +79,67 @@ class RepositoryItem:
     is_file: bool
 
 
-# ============================================================
-# Helpers
-# ============================================================
+def load_config(config_path: Path) -> AppConfig:
+    if not config_path.exists():
+        raise FileNotFoundError(f"Config file does not exist: {config_path}")
+
+    with config_path.open("r", encoding="utf-8") as f:
+        raw = json.load(f)
+
+    return AppConfig(
+        repository_root=Path(raw["repository_root"]),
+        inbox_path=Path(raw["inbox_path"]),
+        shared_path=Path(raw["shared_path"]),
+        archive_path=Path(raw["archive_path"]),
+        dry_run=bool(raw["dry_run"]),
+        recursive_scan=bool(raw["recursive_scan"]),
+        output_path=PROJECT_ROOT / raw["output_path"],
+    )
+
+
+def load_domain_rules(rules_path: Path) -> list[DomainRule]:
+    if not rules_path.exists():
+        raise FileNotFoundError(f"Domain rules file does not exist: {rules_path}")
+
+    with rules_path.open("r", encoding="utf-8") as f:
+        raw = json.load(f)
+
+    rules: list[DomainRule] = []
+    for item in raw.get("rules", []):
+        rules.append(
+            DomainRule(
+                domain=item["domain"],
+                confidence=item["confidence"],
+                keywords=item["keywords"],
+            )
+        )
+    return rules
+
+
+def load_tag_rules(rules_path: Path) -> TagRules:
+    if not rules_path.exists():
+        raise FileNotFoundError(f"Tag rules file does not exist: {rules_path}")
+
+    with rules_path.open("r", encoding="utf-8") as f:
+        raw = json.load(f)
+
+    keyword_rules: list[KeywordTagRule] = []
+    for item in raw.get("keyword_tags", []):
+        keyword_rules.append(
+            KeywordTagRule(
+                keywords=item["keywords"],
+                tags=item["tags"],
+            )
+        )
+
+    return TagRules(
+        extension_tags=raw.get("extension_tags", {}),
+        keyword_tags=keyword_rules,
+        domain_tags=raw.get("domain_tags", {}),
+    )
+
 
 def should_skip(path: Path) -> bool:
-    """Return True if the file should be skipped."""
     name = path.name
 
     if name in SKIP_NAMES:
@@ -96,18 +160,88 @@ def should_skip(path: Path) -> bool:
 
 
 def to_iso_utc(timestamp: float) -> str:
-    """Convert POSIX timestamp to ISO-8601 UTC string."""
     return datetime.fromtimestamp(timestamp, tz=timezone.utc).isoformat()
 
 
-def extract_file_metadata(file_path: Path, inbox_root: Path) -> RepositoryItem:
-    """Extract minimal repository metadata for a single file."""
+def suggest_candidate_domain(file_path: Path, rules: list[DomainRule]) -> tuple[str | None, str | None]:
+    """
+    Suggest candidate domain based on filename/path keyword rules only.
+    Returns (candidate_domain, confidence).
+    """
+    haystack = f"{file_path.name} {file_path.stem} {file_path}".lower()
+
+    matched_rules: list[DomainRule] = []
+    for rule in rules:
+        for keyword in rule.keywords:
+            if keyword.lower() in haystack:
+                matched_rules.append(rule)
+                break
+
+    if len(matched_rules) == 1:
+        return matched_rules[0].domain, matched_rules[0].confidence
+
+    if len(matched_rules) > 1:
+        return None, "low"
+
+    return None, None
+
+
+def suggest_tags(
+    file_path: Path,
+    candidate_domain: str | None,
+    tag_rules: TagRules,
+) -> list[str]:
+    """
+    Suggest retrieval-oriented tags from:
+    1. extension
+    2. filename/path keywords
+    3. candidate domain
+    """
+    haystack = f"{file_path.name} {file_path.stem} {file_path}".lower()
+    tags: list[str] = []
+
+    extension = file_path.suffix.lower()
+    tags.extend(tag_rules.extension_tags.get(extension, []))
+
+    for rule in tag_rules.keyword_tags:
+        for keyword in rule.keywords:
+            if keyword.lower() in haystack:
+                tags.extend(rule.tags)
+                break
+
+    if candidate_domain is not None:
+        tags.extend(tag_rules.domain_tags.get(candidate_domain, []))
+
+    # deduplicate while preserving order
+    unique_tags: list[str] = []
+    seen: set[str] = set()
+    for tag in tags:
+        normalized = tag.strip().lower()
+        if not normalized:
+            continue
+        if normalized in seen:
+            continue
+        seen.add(normalized)
+        unique_tags.append(normalized)
+
+    return unique_tags
+
+
+def extract_file_metadata(
+    file_path: Path,
+    inbox_root: Path,
+    domain_rules: list[DomainRule],
+    tag_rules: TagRules,
+) -> RepositoryItem:
     stat = file_path.stat()
 
     try:
         relative_path = file_path.relative_to(inbox_root)
     except ValueError:
         relative_path = Path(file_path.name)
+
+    candidate_domain, confidence = suggest_candidate_domain(file_path, domain_rules)
+    tags = suggest_tags(file_path, candidate_domain, tag_rules)
 
     return RepositoryItem(
         path=str(file_path),
@@ -117,16 +251,15 @@ def extract_file_metadata(file_path: Path, inbox_root: Path) -> RepositoryItem:
         size=stat.st_size,
         modified_time=to_iso_utc(stat.st_mtime),
         status="inbox",
-        candidate_domain=None,
-        tags=[],
-        confidence=None,
+        candidate_domain=candidate_domain,
+        tags=tags,
+        confidence=confidence,
         is_file=file_path.is_file(),
     )
 
 
-def iter_candidate_files(inbox_path: Path) -> list[Path]:
-    """Collect files from the inbox according to scan settings."""
-    if RECURSIVE_SCAN:
+def iter_candidate_files(inbox_path: Path, recursive_scan: bool) -> list[Path]:
+    if recursive_scan:
         candidates = inbox_path.rglob("*")
     else:
         candidates = inbox_path.glob("*")
@@ -142,64 +275,87 @@ def iter_candidate_files(inbox_path: Path) -> list[Path]:
     return sorted(files, key=lambda p: str(p).lower())
 
 
-def scan_inbox(inbox_path: Path) -> list[RepositoryItem]:
-    """Scan the inbox and return repository item metadata."""
-    files = iter_candidate_files(inbox_path)
-    return [extract_file_metadata(file_path, inbox_path) for file_path in files]
+def scan_inbox(
+    inbox_path: Path,
+    recursive_scan: bool,
+    domain_rules: list[DomainRule],
+    tag_rules: TagRules,
+) -> list[RepositoryItem]:
+    files = iter_candidate_files(inbox_path, recursive_scan)
+    return [
+        extract_file_metadata(file_path, inbox_path, domain_rules, tag_rules)
+        for file_path in files
+    ]
 
 
-def build_manifest(items: list[RepositoryItem], inbox_path: Path) -> dict[str, Any]:
-    """Build the manifest payload according to manifest v0.2."""
+def build_manifest(items: list[RepositoryItem], config: AppConfig) -> dict[str, Any]:
     generated_at = datetime.now(timezone.utc).isoformat()
 
     return {
         "manifest_version": MANIFEST_VERSION,
         "generated_at": generated_at,
-        "repository_root": str(REPOSITORY_ROOT),
-        "inbox_path": str(inbox_path),
+        "repository_root": str(config.repository_root),
+        "inbox_path": str(config.inbox_path),
         "item_count": len(items),
         "items": [asdict(item) for item in items],
     }
 
 
 def save_manifest(manifest: dict[str, Any], output_path: Path) -> None:
-    """Save manifest JSON to disk."""
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
     with output_path.open("w", encoding="utf-8") as f:
         json.dump(manifest, f, ensure_ascii=False, indent=2)
 
 
-# ============================================================
-# Main
-# ============================================================
-
 def main() -> None:
-    if not REPOSITORY_ROOT.exists():
+    config = load_config(CONFIG_PATH)
+    domain_rules = load_domain_rules(DOMAIN_RULES_PATH)
+    tag_rules = load_tag_rules(TAG_RULES_PATH)
+
+    if not config.repository_root.exists():
         raise FileNotFoundError(
-            f"Repository root does not exist: {REPOSITORY_ROOT}"
+            f"Repository root does not exist: {config.repository_root}"
         )
 
-    if not INBOX_PATH.exists():
+    if not config.inbox_path.exists():
         raise FileNotFoundError(
-            f"Inbox path does not exist: {INBOX_PATH}"
+            f"Inbox path does not exist: {config.inbox_path}"
         )
 
-    if not INBOX_PATH.is_dir():
+    if not config.inbox_path.is_dir():
         raise NotADirectoryError(
-            f"Inbox path is not a directory: {INBOX_PATH}"
+            f"Inbox path is not a directory: {config.inbox_path}"
         )
 
-    items = scan_inbox(INBOX_PATH)
-    manifest = build_manifest(items, INBOX_PATH)
-    save_manifest(manifest, OUTPUT_PATH)
+    items = scan_inbox(
+        config.inbox_path,
+        config.recursive_scan,
+        domain_rules,
+        tag_rules,
+    )
+    manifest = build_manifest(items, config)
+    save_manifest(manifest, config.output_path)
+
+    matched = sum(1 for item in items if item.candidate_domain is not None)
+    ambiguous = sum(
+        1 for item in items if item.candidate_domain is None and item.confidence == "low"
+    )
+    tagged = sum(1 for item in items if len(item.tags) > 0)
 
     print("[OK] Inbox scan complete")
     print(f" - Manifest ver : {MANIFEST_VERSION}")
-    print(f" - Inbox path   : {INBOX_PATH}")
+    print(f" - Config path  : {CONFIG_PATH}")
+    print(f" - Domain rules : {DOMAIN_RULES_PATH}")
+    print(f" - Tag rules    : {TAG_RULES_PATH}")
+    print(f" - Inbox path   : {config.inbox_path}")
     print(f" - Items found  : {len(items)}")
-    print(f" - Output file  : {OUTPUT_PATH}")
+    print(f" - Matched      : {matched}")
+    print(f" - Ambiguous    : {ambiguous}")
+    print(f" - Tagged       : {tagged}")
+    print(f" - Output file  : {config.output_path}")
     print(f" - Schema path  : {SCHEMA_PATH}")
+    print(f" - Dry run      : {config.dry_run}")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,88 @@
+{
+  "version": "0.5",
+  "extension_tags": {
+    ".pdf": ["pdf", "document"],
+    ".md": ["markdown", "note"],
+    ".txt": ["text", "note"],
+    ".ipynb": ["notebook", "python"],
+    ".py": ["python", "code"],
+    ".csv": ["csv", "data"],
+    ".xlsx": ["spreadsheet", "data"],
+    ".xls": ["spreadsheet", "data"],
+    ".json": ["json", "data"],
+    ".yaml": ["yaml", "config"],
+    ".yml": ["yaml", "config"]
+  },
+  "keyword_tags": [
+    {
+      "keywords": ["svm", "support vector machine"],
+      "tags": ["svm", "support-vector-machine", "machine-learning"]
+    },
+    {
+      "keywords": ["bayes", "bayesian"],
+      "tags": ["bayesian", "probability"]
+    },
+    {
+      "keywords": ["regression"],
+      "tags": ["regression", "statistics"]
+    },
+    {
+      "keywords": ["process mining", "process-mining"],
+      "tags": ["process-mining", "workflow"]
+    },
+    {
+      "keywords": ["process intelligence", "process-intelligence"],
+      "tags": ["process-intelligence"]
+    },
+    {
+      "keywords": ["ocel", "object-centric", "object centric"],
+      "tags": ["ocel", "object-centric"]
+    },
+    {
+      "keywords": ["python"],
+      "tags": ["python"]
+    },
+    {
+      "keywords": ["pandas"],
+      "tags": ["pandas", "data-analysis"]
+    },
+    {
+      "keywords": ["numpy"],
+      "tags": ["numpy", "numerical-computing"]
+    },
+    {
+      "keywords": ["fastapi"],
+      "tags": ["fastapi", "web-api"]
+    },
+    {
+      "keywords": ["pytest"],
+      "tags": ["pytest", "testing"]
+    },
+    {
+      "keywords": ["macro"],
+      "tags": ["macro"]
+    },
+    {
+      "keywords": ["fed", "fomc"],
+      "tags": ["fed", "monetary-policy"]
+    },
+    {
+      "keywords": ["rates", "yield", "treasury"],
+      "tags": ["rates", "fixed-income"]
+    },
+    {
+      "keywords": ["inflation", "cpi", "ppi"],
+      "tags": ["inflation"]
+    },
+    {
+      "keywords": ["oil", "commodity"],
+      "tags": ["commodity"]
+    }
+  ],
+  "domain_tags": {
+    "ProcessIntelligenceLab": ["process-intelligence-lab"],
+    "StatisticalScience": ["statistical-science"],
+    "PythonProgramming": ["python-programming"],
+    "ChantaPrivateBanking/Macro": ["chanta-private-banking", "macro"]
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "repository_root": "D:\\ChantaResearchGroup",
+  "inbox_path": "D:\\ChantaResearchGroup\\00_Inbox",
+  "shared_path": "D:\\ChantaResearchGroup\\90_Shared",
+  "archive_path": "D:\\ChantaResearchGroup\\99_Archive",
+  "dry_run": true,
+  "recursive_scan": true,
+  "output_path": "scripts/output/inbox_manifest.json"
+}

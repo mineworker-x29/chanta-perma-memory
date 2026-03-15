@@ -1,6 +1,6 @@
 {
-  "manifest_version": "0.2",
-  "generated_at": "2026-03-14T11:30:19.648009+00:00",
+  "manifest_version": "0.5",
+  "generated_at": "2026-03-15T03:19:12.077599+00:00",
   "repository_root": "D:\\ChantaResearchGroup",
   "inbox_path": "D:\\ChantaResearchGroup\\00_Inbox",
   "item_count": 1,
@@ -13,9 +13,16 @@
       "size": 1267655,
       "modified_time": "2021-03-05T12:51:30.854683+00:00",
       "status": "inbox",
-      "candidate_domain": null,
-      "tags": [],
-      "confidence": null,
+      "candidate_domain": "StatisticalScience",
+      "tags": [
+        "pdf",
+        "document",
+        "svm",
+        "support-vector-machine",
+        "machine-learning",
+        "statistical-science"
+      ],
+      "confidence": "medium",
       "is_file": true
     }
   ]

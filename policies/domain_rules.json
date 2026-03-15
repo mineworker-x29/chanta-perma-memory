@@ -1,0 +1,78 @@
+{
+  "version": "0.4",
+  "rules": [
+    {
+      "domain": "ProcessIntelligenceLab",
+      "confidence": "medium",
+      "keywords": [
+        "process mining",
+        "process-mining",
+        "process intelligence",
+        "process-intelligence",
+        "ocel",
+        "object-centric",
+        "object centric",
+        "bpmn",
+        "workflow",
+        "petri net",
+        "event log"
+      ]
+    },
+    {
+      "domain": "StatisticalScience",
+      "confidence": "medium",
+      "keywords": [
+        "svm",
+        "support vector machine",
+        "regression",
+        "bayes",
+        "bayesian",
+        "probability",
+        "statistics",
+        "statistical",
+        "hypothesis test",
+        "distribution",
+        "markov",
+        "stochastic"
+      ]
+    },
+    {
+      "domain": "PythonProgramming",
+      "confidence": "medium",
+      "keywords": [
+        "python",
+        "pandas",
+        "numpy",
+        "fastapi",
+        "pytest",
+        "jupyter",
+        "notebook",
+        "pip",
+        "uvicorn",
+        "sqlalchemy",
+        "asyncio",
+        "beautifulsoup"
+      ]
+    },
+    {
+      "domain": "ChantaPrivateBanking/Macro",
+      "confidence": "medium",
+      "keywords": [
+        "macro",
+        "fed",
+        "fomc",
+        "rates",
+        "liquidity",
+        "cpi",
+        "ppi",
+        "treasury",
+        "yield",
+        "inflation",
+        "gdp",
+        "dollar",
+        "oil",
+        "commodity"
+      ]
+    }
+  ]
+}
