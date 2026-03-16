@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 
 
-MANIFEST_VERSION = "0.5"
+MANIFEST_VERSION = "0.7"
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -42,6 +42,8 @@ class AppConfig:
     dry_run: bool
     recursive_scan: bool
     output_path: Path
+    enable_light_parsing: bool
+    preview_char_limit: int
 
 
 @dataclass
@@ -77,6 +79,8 @@ class RepositoryItem:
     tags: list[str]
     confidence: str | None
     is_file: bool
+    content_preview: str | None
+    content_preview_source: str | None
 
 
 def load_config(config_path: Path) -> AppConfig:
@@ -94,6 +98,8 @@ def load_config(config_path: Path) -> AppConfig:
         dry_run=bool(raw["dry_run"]),
         recursive_scan=bool(raw["recursive_scan"]),
         output_path=PROJECT_ROOT / raw["output_path"],
+        enable_light_parsing=bool(raw.get("enable_light_parsing", False)),
+        preview_char_limit=int(raw.get("preview_char_limit", 1200)),
     )
 
 
@@ -163,12 +169,46 @@ def to_iso_utc(timestamp: float) -> str:
     return datetime.fromtimestamp(timestamp, tz=timezone.utc).isoformat()
 
 
-def suggest_candidate_domain(file_path: Path, rules: list[DomainRule]) -> tuple[str | None, str | None]:
+def extract_text_preview(file_path: Path, char_limit: int) -> tuple[str | None, str | None]:
     """
-    Suggest candidate domain based on filename/path keyword rules only.
-    Returns (candidate_domain, confidence).
+    Light parsing only.
+    Currently supports:
+    - .txt
+    - .md
     """
-    haystack = f"{file_path.name} {file_path.stem} {file_path}".lower()
+    extension = file_path.suffix.lower()
+
+    if extension not in {".txt", ".md"}:
+        return None, None
+
+    try:
+        text = file_path.read_text(encoding="utf-8", errors="ignore")
+    except Exception:
+        return None, None
+
+    preview = " ".join(text.split())
+    preview = preview[:char_limit].strip()
+
+    if not preview:
+        return None, None
+
+    return preview, "text_file"
+
+
+def suggest_candidate_domain(
+    file_path: Path,
+    rules: list[DomainRule],
+    content_preview: str | None = None,
+) -> tuple[str | None, str | None]:
+    """
+    Suggest candidate domain based on filename/path keywords,
+    optionally strengthened by light content preview.
+    """
+    haystack_parts = [str(file_path.name), str(file_path.stem), str(file_path)]
+    if content_preview:
+        haystack_parts.append(content_preview)
+
+    haystack = " ".join(haystack_parts).lower()
 
     matched_rules: list[DomainRule] = []
     for rule in rules:
@@ -178,7 +218,10 @@ def suggest_candidate_domain(file_path: Path, rules: list[DomainRule]) -> tuple[
                 break
 
     if len(matched_rules) == 1:
-        return matched_rules[0].domain, matched_rules[0].confidence
+        confidence = matched_rules[0].confidence
+        if content_preview:
+            confidence = "high" if confidence == "medium" else confidence
+        return matched_rules[0].domain, confidence
 
     if len(matched_rules) > 1:
         return None, "low"
@@ -190,14 +233,20 @@ def suggest_tags(
     file_path: Path,
     candidate_domain: str | None,
     tag_rules: TagRules,
+    content_preview: str | None = None,
 ) -> list[str]:
     """
     Suggest retrieval-oriented tags from:
     1. extension
     2. filename/path keywords
     3. candidate domain
+    4. light content preview
     """
-    haystack = f"{file_path.name} {file_path.stem} {file_path}".lower()
+    haystack_parts = [str(file_path.name), str(file_path.stem), str(file_path)]
+    if content_preview:
+        haystack_parts.append(content_preview)
+
+    haystack = " ".join(haystack_parts).lower()
     tags: list[str] = []
 
     extension = file_path.suffix.lower()
@@ -212,7 +261,6 @@ def suggest_tags(
     if candidate_domain is not None:
         tags.extend(tag_rules.domain_tags.get(candidate_domain, []))
 
-    # deduplicate while preserving order
     unique_tags: list[str] = []
     seen: set[str] = set()
     for tag in tags:
@@ -232,6 +280,7 @@ def extract_file_metadata(
     inbox_root: Path,
     domain_rules: list[DomainRule],
     tag_rules: TagRules,
+    config: AppConfig,
 ) -> RepositoryItem:
     stat = file_path.stat()
 
@@ -240,8 +289,27 @@ def extract_file_metadata(
     except ValueError:
         relative_path = Path(file_path.name)
 
-    candidate_domain, confidence = suggest_candidate_domain(file_path, domain_rules)
-    tags = suggest_tags(file_path, candidate_domain, tag_rules)
+    content_preview = None
+    content_preview_source = None
+
+    if config.enable_light_parsing:
+        content_preview, content_preview_source = extract_text_preview(
+            file_path,
+            config.preview_char_limit,
+        )
+
+    candidate_domain, confidence = suggest_candidate_domain(
+        file_path,
+        domain_rules,
+        content_preview=content_preview,
+    )
+
+    tags = suggest_tags(
+        file_path,
+        candidate_domain,
+        tag_rules,
+        content_preview=content_preview,
+    )
 
     return RepositoryItem(
         path=str(file_path),
@@ -255,6 +323,8 @@ def extract_file_metadata(
         tags=tags,
         confidence=confidence,
         is_file=file_path.is_file(),
+        content_preview=content_preview,
+        content_preview_source=content_preview_source,
     )
 
 
@@ -280,10 +350,11 @@ def scan_inbox(
     recursive_scan: bool,
     domain_rules: list[DomainRule],
     tag_rules: TagRules,
+    config: AppConfig,
 ) -> list[RepositoryItem]:
     files = iter_candidate_files(inbox_path, recursive_scan)
     return [
-        extract_file_metadata(file_path, inbox_path, domain_rules, tag_rules)
+        extract_file_metadata(file_path, inbox_path, domain_rules, tag_rules, config)
         for file_path in files
     ]
 
@@ -333,6 +404,7 @@ def main() -> None:
         config.recursive_scan,
         domain_rules,
         tag_rules,
+        config,
     )
     manifest = build_manifest(items, config)
     save_manifest(manifest, config.output_path)
@@ -342,17 +414,17 @@ def main() -> None:
         1 for item in items if item.candidate_domain is None and item.confidence == "low"
     )
     tagged = sum(1 for item in items if len(item.tags) > 0)
+    parsed = sum(1 for item in items if item.content_preview is not None)
 
     print("[OK] Inbox scan complete")
     print(f" - Manifest ver : {MANIFEST_VERSION}")
     print(f" - Config path  : {CONFIG_PATH}")
-    print(f" - Domain rules : {DOMAIN_RULES_PATH}")
-    print(f" - Tag rules    : {TAG_RULES_PATH}")
     print(f" - Inbox path   : {config.inbox_path}")
     print(f" - Items found  : {len(items)}")
     print(f" - Matched      : {matched}")
     print(f" - Ambiguous    : {ambiguous}")
     print(f" - Tagged       : {tagged}")
+    print(f" - Parsed       : {parsed}")
     print(f" - Output file  : {config.output_path}")
     print(f" - Schema path  : {SCHEMA_PATH}")
     print(f" - Dry run      : {config.dry_run}")

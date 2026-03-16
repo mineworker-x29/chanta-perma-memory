@@ -5,5 +5,10 @@
   "archive_path": "D:\\ChantaResearchGroup\\99_Archive",
   "dry_run": true,
   "recursive_scan": true,
-  "output_path": "scripts/output/inbox_manifest.json"
+  "output_path": "scripts/output/inbox_manifest.json",
+  "enable_light_parsing": true,
+  "preview_char_limit": 1200,
+  "ollama_base_url": "http://127.0.0.1:11434",
+  "ollama_model": "gpt-oss:20b",
+  "memory_refine_limit": 10
 }

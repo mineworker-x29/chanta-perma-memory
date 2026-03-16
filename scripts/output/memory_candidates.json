@@ -1,0 +1,49 @@
+{
+  "memory_version": "0.8",
+  "generated_at": "2026-03-15T14:40:06.541114+00:00",
+  "source_manifest_version": "0.7",
+  "source_manifest_path": "D:\\ChantaResearchGroup\\ChantaPermaMemory\\scripts\\output\\inbox_manifest.json",
+  "candidate_count": 2,
+  "candidates": [
+    {
+      "memory_id": "7bc0277e0902190e",
+      "source_path": "D:\\ChantaResearchGroup\\00_Inbox\\SVM-Support-Vector-Machine-D4R6.pdf",
+      "source_name": "SVM-Support-Vector-Machine-D4R6.pdf",
+      "memory_type": "document-domain",
+      "memory_layer": "provisional",
+      "related_domain": "StatisticalScience",
+      "content": "Document 'SVM-Support-Vector-Machine-D4R6.pdf' is likely associated with domain 'StatisticalScience'.",
+      "tags": [
+        "pdf",
+        "document",
+        "svm",
+        "support-vector-machine",
+        "machine-learning",
+        "statistical-science"
+      ],
+      "confidence": "medium",
+      "status": "candidate",
+      "reason": "Candidate domain was inferred from filename/path/content-based light parsing."
+    },
+    {
+      "memory_id": "9d4b822778e12fb4",
+      "source_path": "D:\\ChantaResearchGroup\\00_Inbox\\SVM-Support-Vector-Machine-D4R6.pdf",
+      "source_name": "SVM-Support-Vector-Machine-D4R6.pdf",
+      "memory_type": "document-topic",
+      "memory_layer": "provisional",
+      "related_domain": "StatisticalScience",
+      "content": "Document 'SVM-Support-Vector-Machine-D4R6.pdf' is associated with tags: pdf, document, svm, support-vector-machine, machine-learning, statistical-science.",
+      "tags": [
+        "pdf",
+        "document",
+        "svm",
+        "support-vector-machine",
+        "machine-learning",
+        "statistical-science"
+      ],
+      "confidence": "medium",
+      "status": "candidate",
+      "reason": "Tags were inferred from extension, keyword rules, and optional content preview."
+    }
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "memory_version": "0.9",
+  "generated_at": "2026-03-16T11:02:46.093744+00:00",
+  "source_memory_version": "0.8",
+  "source_candidate_count": 2,
+  "refined_candidate_count": 2,
+  "refinement_backend": "ollama",
+  "refinement_model": "gpt-oss:20b",
+  "candidates": [
+    {
+      "memory_id": "7bc0277e0902190e",
+      "source_path": "D:\\ChantaResearchGroup\\00_Inbox\\SVM-Support-Vector-Machine-D4R6.pdf",
+      "source_name": "SVM-Support-Vector-Machine-D4R6.pdf",
+      "memory_type": "document-domain",
+      "memory_layer": "provisional",
+      "related_domain": "StatisticalScience",
+      "content": "Document 'SVM-Support-Vector-Machine-D4R6.pdf' is likely associated with domain 'StatisticalScience'.",
+      "tags": [
+        "pdf",
+        "document",
+        "svm",
+        "support-vector-machine",
+        "machine-learning",
+        "statistical-science"
+      ],
+      "confidence": "medium",
+      "status": "candidate",
+      "reason": "Candidate domain was inferred from filename/path/content-based light parsing.",
+      "refined_content": "Document 'SVM-Support-Vector-Machine-D4R6.pdf' is likely associated with domain 'StatisticalScience'.",
+      "refined_reason": "LLM refinement failed to return valid JSON. Raw response: We need to refine a provisional memory candidate conservatively. We must not invent facts. The candidate says source_name, related_domain: StatisticalScience, content: Document 'SVM-Support-Vector-Machine-D4R6.pdf' is likely associated with domain 'StatisticalScience'. tags: pdf, document, svm, supp",
+      "refined_confidence": "medium",
+      "refined_at": "2026-03-16T11:02:35.195971+00:00",
+      "refinement_model": "gpt-oss:20b"
+    },
+    {
+      "memory_id": "9d4b822778e12fb4",
+      "source_path": "D:\\ChantaResearchGroup\\00_Inbox\\SVM-Support-Vector-Machine-D4R6.pdf",
+      "source_name": "SVM-Support-Vector-Machine-D4R6.pdf",
+      "memory_type": "document-topic",
+      "memory_layer": "provisional",
+      "related_domain": "StatisticalScience",
+      "content": "Document 'SVM-Support-Vector-Machine-D4R6.pdf' is associated with tags: pdf, document, svm, support-vector-machine, machine-learning, statistical-science.",
+      "tags": [
+        "pdf",
+        "document",
+        "svm",
+        "support-vector-machine",
+        "machine-learning",
+        "statistical-science"
+      ],
+      "confidence": "medium",
+      "status": "candidate",
+      "reason": "Tags were inferred from extension, keyword rules, and optional content preview.",
+      "refined_content": "Document 'SVM-Support-Vector-Machine-D4R6.pdf' is associated with tags: pdf, document, svm, support-vector-machine, machine-learning, statistical-science.",
+      "refined_reason": "LLM refinement failed to return valid JSON. Raw response: ",
+      "refined_confidence": "medium",
+      "refined_at": "2026-03-16T11:02:46.093744+00:00",
+      "refinement_model": "gpt-oss:20b"
+    }
+  ]
+}

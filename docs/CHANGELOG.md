@@ -2,6 +2,39 @@
 
 All notable changes to ChantaPermaMemory will be documented in this file.
 
+## v1.0
+- Added `generate_review_report.py` for human-readable inbox review
+- Added `build_perma_v1_snapshot.py` for final v1 system snapshot
+- Added `run_perma_v1.py` as integrated end-to-end pipeline runner
+- Unified scanning, review, memory candidate generation, LLM-assisted refinement, and final snapshot packaging
+- Established ChantaPermaMemory as a local-first, reviewable, conservative memory/repository assistant
+
+## v0.9
+- Added local LLM-assisted refinement of provisional memory candidates
+- Added `scripts/refine_memory_candidates_with_ollama.py`
+- Introduced Ollama-backed structured refinement for candidate content, reason, and confidence
+- Kept memory refinement conservative by restricting LLM output to existing candidate evidence
+
+## v0.8
+- Added initial memory layer candidate generation
+- Added `schemas/memory_candidate.schema.json`
+- Added `scripts/generate_memory_candidates.py`
+- Introduced provisional memory candidates derived from manifest items
+- Separated repository item observations from memory-layer candidate objects
+
+## v0.7
+- Added light content parsing for `.txt` and `.md` files
+- Added `content_preview` and `content_preview_source` fields to inbox manifest items
+- Extended domain suggestion to optionally use file content preview
+- Extended tag suggestion to optionally use file content preview
+- Shifted Perma from filename-only suggestion toward light content-aware classification
+
+## v0.6
+- Added markdown review report generation from inbox manifest
+- Added `scripts/generate_review_report.py`
+- Added summary sections for candidate domains, extensions, confidence, tags, ambiguous items, and full item review
+- Extended Perma from scanning and suggestion into human-review support
+
 ## v0.5
 - Added rule-based tag suggestion
 - Added `policies/tag_rules.json`

@@ -1,0 +1,118 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://chanta.local/schemas/memory_candidate.schema.json",
+  "title": "MemoryCandidateList",
+  "description": "Schema for ChantaPermaMemory memory candidate generation output.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "memory_version",
+    "generated_at",
+    "source_manifest_version",
+    "source_manifest_path",
+    "candidate_count",
+    "candidates"
+  ],
+  "properties": {
+    "memory_version": {
+      "type": "string",
+      "const": "0.8"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "source_manifest_version": {
+      "type": "string"
+    },
+    "source_manifest_path": {
+      "type": "string",
+      "minLength": 1
+    },
+    "candidate_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "candidates": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/memoryCandidate"
+      }
+    }
+  },
+  "$defs": {
+    "memoryCandidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "memory_id",
+        "source_path",
+        "source_name",
+        "memory_type",
+        "memory_layer",
+        "related_domain",
+        "content",
+        "tags",
+        "confidence",
+        "status",
+        "reason"
+      ],
+      "properties": {
+        "memory_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "memory_type": {
+          "type": "string",
+          "enum": [
+            "document-topic",
+            "document-domain",
+            "document-preview",
+            "document-reference"
+          ]
+        },
+        "memory_layer": {
+          "type": "string",
+          "enum": [
+            "provisional"
+          ]
+        },
+        "related_domain": {
+          "type": ["string", "null"]
+        },
+        "content": {
+          "type": "string",
+          "minLength": 1
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "confidence": {
+          "type": ["string", "null"],
+          "enum": ["low", "medium", "high", null]
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "candidate"
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}

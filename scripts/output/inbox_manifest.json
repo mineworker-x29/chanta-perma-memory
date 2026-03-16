@@ -1,6 +1,6 @@
 {
-  "manifest_version": "0.5",
-  "generated_at": "2026-03-15T03:19:12.077599+00:00",
+  "manifest_version": "0.7",
+  "generated_at": "2026-03-15T14:14:14.356564+00:00",
   "repository_root": "D:\\ChantaResearchGroup",
   "inbox_path": "D:\\ChantaResearchGroup\\00_Inbox",
   "item_count": 1,
@@ -23,7 +23,9 @@
         "statistical-science"
       ],
       "confidence": "medium",
-      "is_file": true
+      "is_file": true,
+      "content_preview": null,
+      "content_preview_source": null
     }
   ]
 }
