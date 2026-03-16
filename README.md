@@ -50,4 +50,3 @@ src/chanta_perma_memory/
 - CLI entrypoint: `chanta-perma-memory`
 - Current ingest behavior is dry-run only
 - No file move or delete execution is implemented in this stage
->>>>>>> 3b925749e90d2b32f0839056dafdaa9757422317
